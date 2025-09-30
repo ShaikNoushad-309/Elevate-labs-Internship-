@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Form</title>
+    <style>
+        form {
+            height: 100vh;
+            width: 50%;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* align-items: center; */
+            gap: 20px;
+        }
+
+        input {
+            height: 30px;
+        }
+
+        button {
+            height: 35px;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+            /* border: 2px solid teal; */
+        }
+
+        .username {
+            border: 2px solid blue;
+        }
+        .eText{
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+<form action="">
+    <div class="form-control">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" class="username">
+        <div class="nameError eText"></div>
+    </div>
+    <div class="form-control">
+        <label for="email">Email</label>
+        <input type="text" name="email" id="email" class="email">
+        <div class="emailError eText"></div>
+    </div>
+    <div class="form-control">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" class="password">
+        <div class="passwordError eText"></div>
+    </div>
+    <button type="submit" class="submitbtn">Submit</button>
+</form>
+<script>
+    let username = document.querySelector(".username")
+    let email = document.querySelector(".email")
+    let password = document.querySelector(".password")
+    let nameError = document.querySelector(".nameError")
+    let emailError = document.querySelector(".emailError")
+    let passwordError = document.querySelector(".passwordError")
+    let submitbtn = document.querySelector(".submitbtn")
+    let form = document.querySelector("form")
+
+    form.addEventListener("submit", (event) => {
+
+        function Vaild(email) {
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email)
+        }
+
+        console.log("Form Submitting...");
+        // Validating username
+        if (username.value === "") {
+            nameError.innerHTML = "Name is required"
+            event.preventDefault()
+        }
+        else if (username.value.length < 3) {
+            nameError.innerHTML = "Name must have atleast three characters"
+            event.preventDefault()
+
+        }
+        else {
+            nameError.innerHTML = ""
+        }
+        // Validating email
+        if (email.value === "") {
+            emailError.innerHTML = "email is required"
+            event.preventDefault()
+        }
+        else if (!Vaild(email.value)) {
+            emailError.innerHTML = "Enter valid email"
+            event.preventDefault()
+        }
+        else if (email.value.length < 3) {
+            emailError.innerHTML = "email must have atleast three characters"
+            event.preventDefault();
+        }
+        else {
+            emailError.innerHTML = ""
+        }
+        // Validating password
+        if (password.value === "") {
+            passwordError.innerHTML = "Password can't be empty"
+            event.preventDefault();
+        }
+        else if (password.value.length < 3) {
+            passwordError.innerHTML = "password must have atleast three characters"
+            event.preventDefault();
+        }
+        else if(password.value.length > 10){
+            passwordError.innerHTML = "password must have less than 10 characters";
+        }
+        else if(!password.value.includes()){
+
+        }
+        else {
+            passwordError.innerHTML = ""
+        }
+        // if(nameError.innerHTML === "" && emailError.innerHTML === "" && passwordError.innerHTML === ""){
+        if(!nameError.innerHTML  && !emailError.innerHTML && !passwordError.innerHTML){
+            console.log("Data received as below");
+            console.log("Username :",username.value)
+            console.log("Email :",email.value)
+            console.log("Password :",password.value)
+            console.log("Form Successfully Submitted");
+        }
+    });
+
+
+</script>
+</body>
+
+</html>
