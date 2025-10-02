@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data from API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #ff7e5f;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: #ff9a8b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 40px 0;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .user-name {
+            font-size: 1.4rem;
+            color: #2575fc;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .user-email {
+            color: #ff7e5f;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .user-address {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .address-label {
+            font-weight: 600;
+            color: #444;
+            margin-top: 10px;
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>User Directory</h1>
+        <p class="subtitle">Data fetched from JSONPlaceholder API</p>
+    </header>
+
+    <div class="controls">
+        <button id="fetchBtn">Fetch Users</button>
+        <button id="reloadBtn">Reload Data</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading user data...</p>
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+        <p>Error message will appear here</p>
+    </div>
+
+    <div id="usersContainer" class="users-grid">
+        <!-- User cards will be inserted here -->
+    </div>
+
+    <footer>
+        <p>Data provided by JSONPlaceholder &copy; 2023</p>
+    </footer>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fetchBtn = document.getElementById('fetchBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+        const usersContainer = document.getElementById('usersContainer');
+
+        // Function to show loading state
+        function showLoading() {
+            loadingElement.style.display = 'block';
+            errorElement.style.display = 'none';
+            usersContainer.innerHTML = '';
+        }
+
+        // Function to hide loading state
+        function hideLoading() {
+            loadingElement.style.display = 'none';
+        }
+
+        // Function to show error message
+        function showError(message) {
+            errorElement.style.display = 'block';
+            errorElement.innerHTML = `<p>${message}</p>`;
+            usersContainer.innerHTML = '';
+        }
+
+        // Function to fetch and display user data
+        function fetchUserData() {
+            showLoading();
+
+            fetch('https://jsonplaceholder.typicode.com/users')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(users => {
+                    hideLoading();
+                    displayUsers(users);
+                })
+                .catch(error => {
+                    hideLoading();
+                    showError(`Failed to fetch user data: ${error.message}`);
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Function to display users in the UI
+        function displayUsers(users) {
+            usersContainer.innerHTML = '';
+
+            if (users.length === 0) {
+                usersContainer.innerHTML = '<p class="no-users">No users found.</p>';
+                return;
+            }
+
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+
+                userCard.innerHTML = `
+                        <h2 class="user-name">${user.name}</h2>
+                        <p class="user-email">${user.email}</p>
+                        <span class="address-label">Address:</span>
+                        <p class="user-address">
+                            ${user.address.street}, ${user.address.suite}<br>
+                            ${user.address.city}, ${user.address.zipcode}
+                        </p>
+                    `;
+
+                usersContainer.appendChild(userCard);
+            });
+        }
+
+        // Event listeners for buttons
+        fetchBtn.addEventListener('click', fetchUserData);
+        reloadBtn.addEventListener('click', fetchUserData);
+
+        // Fetch data when page loads
+        fetchUserData();
+    });
+</script>
+</body>
+</html>
